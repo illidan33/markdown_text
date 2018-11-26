@@ -4,71 +4,21 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 	<title>MarkDown Text</title>
-	<link rel="stylesheet" href="../css/bootstrap.min.css">
-	<script src="../js/jquery.min.js"></script>
-	<script src="../js/marked.min.js"></script>
-	<style>
-		.md-text {
-			height: 600px;
-			width: 100%;
-		}
-
-		#source-text {
-			border-radius: 5px;
-		}
-
-		#target-text {
-			overflow-y: auto;
-			overflow-x: hidden;
-		}
-	</style>
+	<link rel="stylesheet" href="/css/bootstrap.min.css">
+	<script src="/js/jquery.min.js"></script>
 </head>
 <body>
 <div class="container">
-	<br>
 	<div class="row">
-		<div class="col-md-6">
-			<span class="h5">名称:</span>
-			<input class="" type="text" name="nick-name" id="nick-name" style="margin-right: 20px;">
-			<button id="save-btn" class="btn btn-default">保存</button>
-		</div>
-		<div class="col-md-6">
-			<span class="h5" style="margin: 0px 10px 0px 20px;">访问地址:</span><span id="file-path" ></span>
-		</div>
-	</div>
-	<br>
-	<div class="row">
-		<div class="col-md-6">
-			<textarea id="source-text" class="md-text"></textarea>
-		</div>
-		<div class="col-md-6">
-			<div class="panel panel-default">
-				<div class="panel-body md-text" id="target-text">
-				</div>
-			</div>
+		<br>
+		<div class="col-md-12">
+			<ul class="list-group">
+			{{range $file := .files}}
+				<li class="list-group-item"><a href="/Detail/{{$file}}">{{$file}}</a></li>
+			{{end}}
+			</ul>
 		</div>
 	</div>
 </div>
-<script>
-	$(function() {
-		$("#source-text").focus();
-		$("#source-text").bind("input propertychange", function() {
-			let text = $(this).val();
-			let htmlStr = marked(text);
-			let reg = /<table>/g;
-			htmlStr = htmlStr.replace(reg, "<table class='table table-bordered'>")
-			$("#target-text").html(htmlStr);
-		});
-		$("#save-btn").click(function() {
-			$.post("/save", {content: $("#target-text").html(),name: $("#nick-name").val()}, function(resp) {
-				if (resp.path != null) {
-					$("#file-path").text(resp.path);
-				} else {
-					$("#file-path").text("保存失败");
-				}
-			});
-		});
-	})
-</script>
 </body>
 </html>

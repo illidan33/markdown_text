@@ -23,12 +23,13 @@
 	</style>
 </head>
 <body>
-<div class="container">
+<div class="container-fluid">
 	<br>
 	<div class="row">
 		<div class="col-md-6 source-cs" style="display: none;">
 			<span class="h5">名称:</span>
-			<input class="" type="text" name="nick-name" id="nick-name" style="margin-right: 20px;" value="{{.name}}">
+			<input id="old-nick-name" type="text" class="hidden" value="{{.name}}">
+			<input class="" type="text" name="nick-name" id="nick-name" style="margin-right: 20px;width: 300px;" value="{{.name}}">
 			<button id="save-btn" class="btn btn-default">保存</button>
 			<button id="see-btn" class="btn btn-default">预览</button>
 		</div>
@@ -36,10 +37,15 @@
 			<button id="edit-btn" class="btn btn-default">编辑</button>
 		</div>
 	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<span id="notice" class="text-danger"></span>
+		</div>
+	</div>
 	<br>
 	<div class="row">
 		<div class="col-md-6 source-cs" id="source-div" style="display: none;">
-			<textarea id="source-text">{{.content}}</textarea>
+			<textarea id="source-text" class="panel-body">{{.content}}</textarea>
 		</div>
 		<div class="col-md-12" id="target-div">
 			<div class="panel panel-default">
@@ -53,8 +59,6 @@
 	$(function() {
 		let isSync = false;
 		fillTargetText();
-		$("#source-text").height($(window).height());
-		$("#target-text").height($(window).height());
 
 		$("#see-btn").click(function() {
 			if (isSync === false) {
@@ -78,22 +82,30 @@
 			fillTargetText();
 		});
 		$("#save-btn").click(function() {
-			let reg = /^[0-9a-zA-Z\-_]+$/i
+			$("#notice").text("");
+			let reg = /^[0-9a-zA-Z\-_\u4e00-\u9fa5]+$/i
 			let content = $("#source-text").val();
 			let name = $("#nick-name").val();
 			if (!reg.test(name)) {
-				alert("名称只能为数字、字母、-，不能含有特殊字符!");
+				$("#notice").text("Notice: 名称只能为中文、数字、字母、-、_，不能含有特殊字符!");
 			} else {
-				$.post("/save", {content: content, name: name}, function(resp) {
-					if (resp.path != null) {
+				$.post("/save", {content: content, name: name, old_name: $("#old-nick-name").val()}, function(resp) {
+					if (resp.msg != null) {
+						$("#notice").text("Notice: " + resp.msg);
+					} else {
 						$(".source-cs").hide();
 						$("#edit-btn").show();
 						$("#target-div").removeClass("col-md-6").addClass("col-md-12");
+						if (resp.path != null && resp.path !== "") {
+							window.location.href = resp.path;
+						}
 					}
 				});
 			}
 		});
 		$("#edit-btn").click(function() {
+			$("#source-text").height($(window).height());
+			$("#target-text").height($(window).height());
 			$(".source-cs").show();
 			$(this).hide();
 			$("#target-div").removeClass("col-md-12").addClass("col-md-6");
