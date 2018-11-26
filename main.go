@@ -15,11 +15,11 @@ var (
 )
 
 func main() {
-	RootPath = fmt.Sprintf("%s/src/gotest/markdown_text/", os.Getenv("GOPATH"))
+	RootPath = fmt.Sprintf("%s/src/github.com/illidan33/markdown_text/", os.Getenv("GOPATH"))
 	port := flag.Int("port", 8001, "listen port")
 	flag.Parse()
 
-	//gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 
 	router.LoadHTMLGlob(RootPath + "html/*")
