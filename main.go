@@ -5,8 +5,9 @@ import (
 	"net/http"
 	"os"
 	"fmt"
-	"io/ioutil"
 	"flag"
+	"io/ioutil"
+	"regexp"
 )
 
 var (
@@ -14,7 +15,7 @@ var (
 )
 
 func main() {
-	RootPath = fmt.Sprintf("%s/src/gotest/markdown_test/", os.Getenv("GOPATH"))
+	RootPath = fmt.Sprintf("%s/src/gotest/markdown_text/", os.Getenv("GOPATH"))
 	port := flag.Int("port", 8001, "listen port")
 	flag.Parse()
 
@@ -26,6 +27,7 @@ func main() {
 	router.Static("/css", RootPath+"css")
 	router.Static("/files", RootPath+"create_files")
 	router.GET("/", IndexRouter)
+	router.GET("/Detail/:name", DetailRouter)
 	router.POST("/save", SaveRouter)
 
 	router.Run(fmt.Sprintf(":%d", *port))
@@ -34,13 +36,50 @@ func main() {
 func IndexRouter(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.html", gin.H{})
 }
+func DetailRouter(c *gin.Context) {
+	content := []byte("")
+	name := c.Param("name")
+	if name != "" {
+		filePath := fmt.Sprintf("%screate_files/%s.tpl", RootPath, name)
+
+		if IsExists(filePath) {
+			handle, err := os.Open(filePath)
+			if err != nil {
+				c.HTML(http.StatusInternalServerError, "500", gin.H{})
+				return
+			}
+			defer handle.Close()
+
+			content, _ = ioutil.ReadAll(handle)
+		}
+	}
+
+	c.HTML(http.StatusOK, "detail.html", gin.H{
+		"content": string(content),
+		"name":    name,
+	})
+}
 
 func SaveRouter(c *gin.Context) {
 	c.Request.ParseForm()
-	content := c.PostForm("content");
-	name := c.PostForm("name");
-	fileName := fmt.Sprintf("%s.html", name)
-	filePath := fmt.Sprintf("%screate_files/%s", RootPath, fileName)
+	content := c.PostForm("content")
+	name := c.PostForm("name")
+	if name == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"msg": "name empty",
+		})
+		return
+	} else {
+		reg := regexp.MustCompile(`^[0-9a-zA-Z\-_]+$`)
+		if ok := reg.MatchString(name); !ok {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"msg": "name error",
+			})
+			return
+		}
+	}
+
+	filePath := fmt.Sprintf("%screate_files/%s.tpl", RootPath, name)
 
 	var handle *os.File
 	var err error
@@ -50,27 +89,16 @@ func SaveRouter(c *gin.Context) {
 
 	handle, err = os.Create(filePath)
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"msg": err.Error(),
+		c.JSON(http.StatusBadRequest, gin.H{
+			"msg": "name error",
 		})
 		return
 	}
 	defer handle.Close()
 
-	headerHandle, _ := os.Open(fmt.Sprintf("%shtml/header.tpl", RootPath))
-	defer headerHandle.Close()
-	headerHtml, _ := ioutil.ReadAll(headerHandle)
-	handle.Write(headerHtml)
-
-	_, err = handle.Write([]byte(fmt.Sprintf("%s</div> </div> </body> </html>", content)))
-	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"msg": err.Error(),
-		})
-		return
-	}
+	handle.Write([]byte(content))
 	c.JSON(http.StatusOK, gin.H{
-		"path": fmt.Sprintf("http://%s/files/%s", c.Request.Host, fileName),
+		"path": fmt.Sprintf("http://%s/Detail/%s", c.Request.Host, name),
 	})
 }
 

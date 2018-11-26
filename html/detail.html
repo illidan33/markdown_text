@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<title>MarkDown Text</title>
+	<link rel="stylesheet" href="../css/bootstrap.min.css">
+	<script src="../js/jquery.min.js"></script>
+	<script src="../js/marked.min.js"></script>
+	<style>
+		#source-text {
+			height: 600px;
+			width: 100%;
+			resize: none;
+			border-color: #999999;
+			border-radius: 5px;
+		}
+
+		#target-text {
+			overflow-y: auto;
+			overflow-x: hidden;
+		}
+	</style>
+</head>
+<body>
+<div class="container">
+	<br>
+	<div class="row">
+		<div class="col-md-6 source-cs" style="display: none;">
+			<span class="h5">名称:</span>
+			<input class="" type="text" name="nick-name" id="nick-name" style="margin-right: 20px;" value="{{.name}}">
+			<button id="save-btn" class="btn btn-default">保存</button>
+			<button id="see-btn" class="btn btn-default">预览</button>
+		</div>
+		<div class="col-md-6 target-div">
+			<button id="edit-btn" class="btn btn-default">编辑</button>
+		</div>
+	</div>
+	<br>
+	<div class="row">
+		<div class="col-md-6 source-cs" id="source-div" style="display: none;">
+			<textarea id="source-text">{{.content}}</textarea>
+		</div>
+		<div class="col-md-12" id="target-div">
+			<div class="panel panel-default">
+				<div class="panel-body" id="target-text">
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+	$(function() {
+		let isSync = false;
+		fillTargetText();
+		$("#source-text").height($(window).height());
+		$("#target-text").height($(window).height());
+
+		$("#see-btn").click(function() {
+			if (isSync === false) {
+				isSync = true;
+				$(this).addClass("btn-info");
+				$("#source-div").removeClass("col-md-12").addClass("col-md-6");
+				$("#target-div").show();
+			} else {
+				isSync = false;
+				$(this).removeClass("btn-info");
+				$("#source-div").removeClass("col-md-6").addClass("col-md-12");
+				$("#target-div").hide();
+			}
+		});
+
+
+		$("#source-text").bind("input propertychange", function() {
+			if (isSync === false) {
+				return
+			}
+			fillTargetText();
+		});
+		$("#save-btn").click(function() {
+			let reg = /^[0-9a-zA-Z\-_]+$/i
+			let content = $("#source-text").val();
+			let name = $("#nick-name").val();
+			if (!reg.test(name)) {
+				alert("名称只能为数字、字母、-，不能含有特殊字符!");
+			} else {
+				$.post("/save", {content: content, name: name}, function(resp) {
+					if (resp.path != null) {
+						$(".source-cs").hide();
+						$("#edit-btn").show();
+						$("#target-div").removeClass("col-md-6").addClass("col-md-12");
+					}
+				});
+			}
+		});
+		$("#edit-btn").click(function() {
+			$(".source-cs").show();
+			$(this).hide();
+			$("#target-div").removeClass("col-md-12").addClass("col-md-6");
+			$("#see-btn").addClass("btn-info");
+			isSync = true;
+		});
+
+		function fillTargetText() {
+			let text = $("#source-text").val();
+			let htmlStr = marked(text);
+			let reg = /<table>/g;
+			htmlStr = htmlStr.replace(reg, "<table class='table table-bordered'>")
+			$("#target-text").html(htmlStr);
+		}
+	})
+</script>
+</body>
+</html>
