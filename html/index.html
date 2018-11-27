@@ -12,6 +12,9 @@
 	<div class="row">
 		<br>
 		<div class="col-md-12">
+			<button class="btn btn-default" id="create-btn">创建新文档</button>
+		</div>
+		<div class="col-md-12">
 			<ul class="list-group">
 			{{range $file := .files}}
 				<li class="list-group-item"><a href="/Detail/{{$file}}">{{$file}}</a></li>
@@ -20,5 +23,12 @@
 		</div>
 	</div>
 </div>
+<script>
+	$(function() {
+		$("#create-btn").click(function() {
+			window.location.href = "/New";
+		});
+	})
+</script>
 </body>
 </html>

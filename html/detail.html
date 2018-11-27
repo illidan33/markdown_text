@@ -86,6 +86,10 @@
 			let reg = /^[0-9a-zA-Z\-_\u4e00-\u9fa5]+$/i
 			let content = $("#source-text").val();
 			let name = $("#nick-name").val();
+			if (name === "") {
+				$("#notice").text("Notice: 名称不能为空!");
+				return
+			}
 			if (!reg.test(name)) {
 				$("#notice").text("Notice: 名称只能为中文、数字、字母、-、_，不能含有特殊字符!");
 			} else {

@@ -17,11 +17,15 @@ var (
 )
 
 func main() {
-	RootPath = fmt.Sprintf("%s/src/github.com/illidan33/markdown_text", os.Getenv("GOPATH"))
+	goPath := os.Getenv("GOPATH")
+	if goPath == "" {
+		goPath = "/test"
+	}
+	RootPath = fmt.Sprintf("%s/src/github.com/illidan33/markdown_text", goPath)
 	port := flag.Int("port", 8001, "listen port")
 	flag.Parse()
 
-	//gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 
 	router.LoadHTMLGlob(RootPath + "/html/*")
@@ -30,6 +34,7 @@ func main() {
 	router.Static("/files", RootPath+"/create_files")
 	router.GET("/", IndexRouter)
 	router.GET("/Detail/:name", DetailRouter)
+	router.GET("/New", NewRouter)
 	router.POST("/save", SaveRouter)
 
 	router.Run(fmt.Sprintf(":%d", *port))
@@ -48,6 +53,12 @@ func IndexRouter(c *gin.Context) {
 
 	c.HTML(http.StatusOK, "index.html", gin.H{
 		"files": fileNames,
+	})
+}
+func NewRouter(c *gin.Context) {
+	c.HTML(http.StatusOK, "detail.html", gin.H{
+		"content": "",
+		"name":    "",
 	})
 }
 func DetailRouter(c *gin.Context) {
