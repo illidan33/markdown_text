@@ -34,7 +34,8 @@
 			<button id="see-btn" class="btn btn-default">预览</button>
 		</div>
 		<div class="col-md-6 target-div">
-			<button id="edit-btn" class="btn btn-default">编辑</button>
+			<button id="edit-btn" class="btn btn-default edit-cs">编辑</button>
+			<button id="home-btn" class="btn btn-default edit-cs">首页</button>
 		</div>
 	</div>
 	<div class="row">
@@ -98,7 +99,7 @@
 						$("#notice").text("Notice: " + resp.msg);
 					} else {
 						$(".source-cs").hide();
-						$("#edit-btn").show();
+						$(".edit-cs").show();
 						$("#target-div").removeClass("col-md-6").addClass("col-md-12");
 						if (resp.path != null && resp.path !== "") {
 							window.location.href = resp.path;
@@ -111,10 +112,13 @@
 			$("#source-text").height($(window).height());
 			$("#target-text").height($(window).height());
 			$(".source-cs").show();
-			$(this).hide();
+			$(".edit-cs").hide();
 			$("#target-div").removeClass("col-md-12").addClass("col-md-6");
 			$("#see-btn").addClass("btn-info");
 			isSync = true;
+		});
+		$("#home-btn").click(function() {
+			window.location.href = "/";
 		});
 
 		function fillTargetText() {
